@@ -47,6 +47,7 @@ class App:
         self.ca = CellularAutomaton(self.size)
         self.canvas = tk.Canvas(root, width=self.size * CELL_SIZE + 200, height=self.size * CELL_SIZE + 200)
         self.canvas.pack()
+
         self.running = False
         self.generation = 0
         self.stripe_indices = []
@@ -54,16 +55,18 @@ class App:
         self.run_button = tk.Button(root, text="Run", command=self.run)
         self.run_button.pack()
 
+
+    # Function to draw the grid
     def draw_grid(self):
         for row in range(GRID_SIZE):
             for col in range(GRID_SIZE):
-                x1 = col * CELL_SIZE + 100
+                x1 = col * CELL_SIZE +100
                 y1 = row * CELL_SIZE + 75
                 x2 = x1 + CELL_SIZE
                 y2 = y1 + CELL_SIZE
-                color = "black" if self.ca.grid[row, col] == 1 else "white"
+                color = random.choice(["black", "white"])
                 self.canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="")
-        self.canvas.update()
+
 
     def draw_zebra_head(self):
         head_x1 = (GRID_SIZE - 5) * CELL_SIZE + 100
@@ -85,7 +88,6 @@ class App:
 
         self.canvas.create_oval(left_eye_x1, left_eye_y1, left_eye_x2, left_eye_y2, fill="black", outline="black")
         self.canvas.create_oval(right_eye_x1, right_eye_y1, right_eye_x2, right_eye_y2, fill="black", outline="black")
-        self.canvas.update()
 
     def draw_zebra_legs(self):
         leg_width = 3 * CELL_SIZE
@@ -102,7 +104,6 @@ class App:
             x2 = x1 + leg_width
             y2 = y1 + leg_height
             self.canvas.create_rectangle(x1, y1, x2, y2, fill="black", outline="black")
-        self.canvas.update()
 
     def draw_zebra_tail(self):
         tail_x1 = 25
@@ -110,7 +111,6 @@ class App:
         tail_x2 = 10 * CELL_SIZE + 25
         tail_y2 = tail_y1 + 1 * CELL_SIZE
         self.canvas.create_line(tail_x1, tail_y1, tail_x2, tail_y2, fill="black", width=5)
-        self.canvas.update()
 
     def run(self):
         self.draw_grid()
@@ -122,4 +122,5 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.title("Zebra")
     app = App(root)
+    app.run()
     root.mainloop()
