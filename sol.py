@@ -24,12 +24,15 @@ class CellularAutomaton:
         above = self.grid[(x-1)%self.size, y]
         below = self.grid[(x+1)%self.size, y]
         
+        # Check if the neighboring cells have the same color
         if left == right:
-            return 1 - left
+            return left  # Keep the color of the neighbors
         elif above == below:
-            return 1 - above
+            return above  # Keep the color of the neighbors
         else:
-            return self.grid[x, y]
+            # Switch the color
+            return 1 - self.grid[x, y]  # Assuming colors are represented as 0 (white) and 1 (black)
+
 
     def stripe_index(self):
         mismatches = 0
