@@ -1,6 +1,7 @@
 import tkinter as tk
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 
 # Constants
 GRID_SIZE = 80
@@ -19,20 +20,45 @@ class CellularAutomaton:
         self.grid, self.next_grid = self.next_grid, self.grid
 
     def rule(self, x, y):
-        left = self.grid[x, (y-1)%self.size]
-        right = self.grid[x, (y+1)%self.size]
-        above = self.grid[(x-1)%self.size, y]
-        below = self.grid[(x+1)%self.size, y]
-        
-        # Check if the neighboring cells have the same color
-        if left == right:
-            return left  # Keep the color of the neighbors
-        elif above == below:
-            return above  # Keep the color of the neighbors
-        else:
-            # Switch the color
-            return 1 - self.grid[x, y]  # Assuming colors are represented as 0 (white) and 1 (black)
+            left = self.grid[x, (y-1)%self.size]
+            leftAbove = self.grid[(x-1)%self.size, (y-1)%self.size]
+            leftBelow = self.grid[(x+1)%self.size, (y-1)%self.size]
+            right = self.grid[x, (y+1)%self.size]
+            rightAbove = self.grid[(x-1)%self.size, (y+1)%self.size]
+            rightBelow = self.grid[(x+1)%self.size, (y+1)%self.size]
+            above = self.grid[(x-1)%self.size, y]
+            below = self.grid[(x+1)%self.size, y]
+            threshold=0
+            me= self.grid[x][y]
+            if me == above:
+                threshold += 1/8
+            if me == below:
+                threshold += 1/8  
+            if me != left:
+                threshold += 1/8  
+            if me != right:
+                threshold += 1/8 
+            if me != rightAbove:
+                threshold += 1/8
+            if me != rightBelow:
+                threshold += 1/8 
+            if me != leftAbove:
+                threshold += 1/8
+            if me != leftBelow:
+                threshold += 1/8
+            if threshold==0.5  :
+                random_number= random.random()
+                if random_number >0.5:
+                    return 1
+                else :
+                    return 0
 
+            if 0.5 > threshold:
+                return 1-me
+            return me
+
+
+  
 
     def stripe_index(self):
         mismatches = 0
@@ -65,6 +91,8 @@ def draw_grid():
             y2 = y1 + CELL_SIZE
             color = "black" if ca.grid[row, col] == 1 else "white"
             canvas.create_rectangle(x1, y1, x2, y2, fill=color, outline="")
+            
+    draw_generation_number()
 
     draw_zebra_head()
     draw_zebra_legs()
@@ -118,7 +146,7 @@ def draw_zebra_tail():
 
 def update():
     global generation
-    if generation < 250:
+    if generation < 1000:
         ca.update()
         draw_grid()
         stripe_indices.append(ca.stripe_index())
@@ -126,6 +154,10 @@ def update():
         root.after(100, update)
     else:
         plot_stripe_indices()
+
+def draw_generation_number():
+    # Display the current generation number
+    canvas.create_text(50, 20, text=f"Generation: {generation}", anchor="nw", font=("Helvetica", 16))
 
 def plot_stripe_indices():
     plt.plot(stripe_indices)
