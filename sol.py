@@ -167,7 +167,7 @@ def plot_zebra_index():
 
 def update():
     global generation
-    if generation < 350:
+    if generation < 400:
         ca.update()
         draw_grid()
         zebra_indices.append(ca.zebra_index())
@@ -178,7 +178,9 @@ def update():
 
 def draw_generation_number():
     # Display the current generation number
-    canvas.create_text(50, 20, text=f"Generation: {generation}", anchor="nw", font=("Helvetica", 16))
+    zebra_index_value = ca.zebra_index()
+    canvas.create_text(50, 20, text=f"Generation: {generation}" , anchor="nw", font=("Helvetica", 16))
+    canvas.create_text(50, 40, text=f"Zebra Index: {zebra_index_value:.2f}", anchor="nw", font=("Helvetica", 16))
 
 # Draw the initial grid
 draw_grid()
