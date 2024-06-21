@@ -72,12 +72,11 @@ def genetic_algorithm(men_preferences, women_preferences, num_generations=10, po
             child1 = crossover(parent1, parent2)
             child1 = mutate(child1)
             new_population.extend([child1])
-        for _ in range(int(population_size*0.05)):
-            best_solutions = sorted(population, key=lambda x: fitness_scores[population.index(x)])[:int(population_size*0.05)]
-            print('best_solutions: ', best_solutions[0])
-            new_population.extend(best_solutions)
+        best_solutions = sorted(population, key=lambda x: fitness_scores[population.index(x)])[:int(population_size*0.05)]
+        print('best_solutions: ', best_solutions[0])
+        new_population.extend(best_solutions)
         population = new_population
-
+ 
 
     best_solution = max(population, key=lambda x: calculate_fitness(x, men_preferences, women_preferences))
     return best_solution
