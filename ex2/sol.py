@@ -22,11 +22,11 @@ def calculate_fitness(solution, men_preferences, women_preferences):
     score = 0
     for man, woman in solution:
 
-        man_pref = n - men_preferences[man-1].index(woman)
-        woman_pref = n - women_preferences[woman-1].index(man)
+        man_pref = n - men_preferences[man-1].index(woman) # from 1 to n
+        woman_pref = n - women_preferences[woman-1].index(man) # from 1 to n
 
         score += man_pref + woman_pref
-    return score
+    return (score -2 ) / (n*n*2 -2) # normalize score to be between 0 and 1
 
 def select_parents(population, fitness_scores):
     total_fitness = sum(fitness_scores)
@@ -61,7 +61,7 @@ def mutate(solution, mutation_rate=0.05):
             solution[i][0], solution[j][0] = solution[j][0], solution[i][0]
     return solution
 
-def genetic_algorithm(men_preferences, women_preferences, num_generations=10, population_size=50):
+def genetic_algorithm(men_preferences, women_preferences, num_generations=100, population_size=180):
     population = generate_initial_population(n, population_size)
     for _ in range(num_generations):
         new_population = []
@@ -72,9 +72,11 @@ def genetic_algorithm(men_preferences, women_preferences, num_generations=10, po
             child1 = crossover(parent1, parent2)
             child1 = mutate(child1)
             new_population.extend([child1])
+        # elitism
         best_solutions = sorted(population, key=lambda x: fitness_scores[population.index(x)])[:int(population_size*0.05)]
-        print('best_solutions: ', best_solutions[0])
+        # print('best_solutions: ', best_solutions[0])
         new_population.extend(best_solutions)
+
         population = new_population
  
 
