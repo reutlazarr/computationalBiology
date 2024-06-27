@@ -102,8 +102,10 @@ def genetic_algorithm(men_preferences, women_preferences, num_generations=180, p
     best_fitness = calculate_fitness(best_solution,men_preferences, women_preferences)
     return best_solution, best_fitness
 
-men_preferences, women_preferences = read_preferences('GA_input.txt')
+preferences_file = 'GA_input.txt'
+men_preferences, women_preferences = read_preferences(preferences_file)
 
 best_match,best_fitness  = genetic_algorithm(men_preferences, women_preferences)
 print("best solution:" , best_match)
 print("best fitness: ", best_fitness)
+input()
