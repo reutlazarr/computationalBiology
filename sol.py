@@ -6,6 +6,7 @@ import random
 # Constants
 GRID_SIZE = 80
 CELL_SIZE = 6.5  # Size of each cell in pixels
+RUNS = 10  # Number of times to run the simulation
 
 class CellularAutomaton:
     def __init__(self, size=80):
@@ -157,24 +158,25 @@ def draw_zebra_tail():
     tail_y2 = tail_y1 + 1 * CELL_SIZE
     canvas.create_line(tail_x1, tail_y1, tail_x2, tail_y2, fill="black", width=5)
 
-def plot_zebra_index():
-    plt.plot(zebra_indices, color='tab:red')
+def plot_zebra_indices(zebra_indices_runs):
+    for zebra_indices in zebra_indices_runs:
+        plt.plot(zebra_indices)
+    
     plt.xlabel('Generation')
     plt.ylabel('Zebra Index')
-    plt.title('Zebra Index Over Generations')
+    plt.title('Zebra Index Over Generations (10 Runs)')
     plt.ylim(0, 1)  # Ensure the y-axis ranges from 0 to 1
     plt.show()
 
 def update():
     global generation
-    if generation < 400:
+    if generation < 250:
         ca.update()
         draw_grid()
         zebra_indices.append(ca.zebra_index())
         generation += 1
         root.after(100, update)
-    else:
-        plot_zebra_index()
+
 
 def draw_generation_number():
     # Display the current generation number
