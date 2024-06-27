@@ -1,5 +1,5 @@
 import random
-import copy
+
 n=30
 def read_preferences(filename):
     with open(filename, 'r') as file:
@@ -13,7 +13,6 @@ def generate_individual(size):
     sol=[(i+1, individuals[i]) for i in range(size)]
     random.shuffle(sol)
     return sol
-
 
 def generate_initial_population(size, num_individuals):
     population = []
@@ -73,7 +72,7 @@ def mutate(solution, mutation_rate=0.05):
 
     return tuple(tuple(x) for x in solution)
 
-def genetic_algorithm(men_preferences, women_preferences, num_generations=500, population_size=180):
+def genetic_algorithm(men_preferences, women_preferences, num_generations=180, population_size=100):
     population = generate_initial_population(n, population_size)
     for _ in range(num_generations):
         fitnesses={}
@@ -83,12 +82,11 @@ def genetic_algorithm(men_preferences, women_preferences, num_generations=500, p
             individual=generate_individual(n)
             fitnesses[tuple(individual)] = calculate_fitness(individual, men_preferences, women_preferences)
         new_population = []
-        best_fitness_scores = sorted(fitnesses.values(), reverse=True)[:5]
-        print('best_fitness_scores: ', best_fitness_scores[0])
+        best_fitness_scores = sorted(fitnesses.values(), reverse=True)[:int(population_size*0.05)]
         best_solutions= [get_key_by_value(fitnesses,item) for item in best_fitness_scores]
         # elitism
         new_population.extend(best_solutions)
-        for _ in range(population_size-5):
+        for _ in range(population_size-int(population_size*0.05)):
             fitnesses_list = []
             for element in fitnesses:
                 fitnesses_list.append(fitnesses[element])   
@@ -106,6 +104,3 @@ def genetic_algorithm(men_preferences, women_preferences, num_generations=500, p
 men_preferences, women_preferences = read_preferences('GA_input.txt')
 
 best_match = genetic_algorithm(men_preferences, women_preferences)
-# print("Best Match:", best_match)
-# print("Fitness Score:", calculate_fitness(best_match,men_preferences, women_preferences ))
-
