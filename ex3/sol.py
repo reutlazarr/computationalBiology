@@ -11,7 +11,7 @@ digits_keys = pd.read_csv(keys_path, header=None).values.flatten()
 # Parameters
 num_neurons = 10  # Number of neurons in each dimension (10x10 grid)
 input_len = 784  # Length of input vector (28x28 images)
-raduis = 1.0  # Neighborhood radius
+raduis = 1.0  # neighborhood radius
 learning_rate = 0.5  # Learning rate
 num_iterations = 10000  # Number of iterations
 
@@ -19,7 +19,7 @@ num_iterations = 10000  # Number of iterations
 weights = np.random.rand(num_neurons, num_neurons, input_len) * 255
 
 def euclidean_distance(x, y):
-    return np.sqrt(np.sum((x - y) ** 2))
+    return np.sqrt(np.sum((x - y) ** 2, axis=-1))
 
 def decay_function(initial, t, max_iter):
     return initial * np.exp(-t / max_iter)
@@ -28,14 +28,8 @@ def train_som(data, weights, num_iterations, raduis, learning_rate):
     for t in range(num_iterations):
         for vector in data:
             # Find the Best Matching Unit (BMU)
-            bmu_idx = np.array([0, 0])
-            min_dist = np.inf
-            for i in range(num_neurons):
-                for j in range(num_neurons):
-                    dist = euclidean_distance(vector, weights[i, j])
-                    if dist < min_dist:
-                        min_dist = dist
-                        bmu_idx = np.array([i, j])
+            dists = euclidean_distance(weights, vector)
+            bmu_idx = np.unravel_index(np.argmin(dists, axis=None), dists.shape)
             
             # Update the weights
             for i in range(num_neurons):
@@ -43,9 +37,9 @@ def train_som(data, weights, num_iterations, raduis, learning_rate):
                     neuron_pos = np.array([i, j])
                     dist_to_bmu = euclidean_distance(neuron_pos, bmu_idx)
                     if dist_to_bmu <= raduis:
-                        Neighborhood = np.exp(-dist_to_bmu ** 2 / (2 * raduis ** 2))
+                        neighborhood = np.exp(-dist_to_bmu ** 2 / (2 * raduis ** 2))
                         current_error = vector - weights[i, j]
-                        weights[i, j] += Neighborhood * learning_rate * current_error
+                        weights[i, j] += neighborhood * learning_rate * current_error
         
         # Decay raduis and learning rate
         raduis = decay_function(raduis, t, num_iterations)
@@ -53,19 +47,14 @@ def train_som(data, weights, num_iterations, raduis, learning_rate):
 
 train_som(data, weights, num_iterations, raduis, learning_rate)
 
+
 def plot_som_with_labels(weights, data, labels):
     plt.figure(figsize=(10, 10))
     label_map = np.zeros((num_neurons, num_neurons, 10))  # To count the labels in each neuron
-    for i, x in enumerate(data):
-        bmu_idx = np.array([0, 0])
-        min_dist = np.inf
-        for i in range(num_neurons):
-            for j in range(num_neurons):
-                dist = euclidean_distance(x, weights[i, j])
-                if dist < min_dist:
-                    min_dist = dist
-                    bmu_idx = np.array([i, j])
-        label_map[bmu_idx[0], bmu_idx[1], int(labels[i])] += 1
+    for x, label in zip(data, labels):
+        dists = euclidean_distance(weights, x)
+        bmu_idx = np.unravel_index(np.argmin(dists, axis=None), dists.shape)
+        label_map[bmu_idx[0], bmu_idx[1], int(label)] += 1
     
     for i in range(num_neurons):
         for j in range(num_neurons):
