@@ -14,7 +14,7 @@ num_neurons = 10  # Number of neurons in each dimension (10x10 grid)
 input_len = 784  # Length of input vector (28x28 images)
 radius = 1.0  # Neighborhood radius
 learning_rate = 0.5  # Learning rate
-num_iterations = 20  # Number of iterations
+max_duration = 180  # Maximum duration in seconds
 
 # Initialize the weights
 weights = np.random.rand(num_neurons, num_neurons, input_len) * 255
@@ -25,9 +25,11 @@ def euclidean_distance(x, y):
 def decay_function(initial, t, max_iter):
     return initial * np.exp(-t / max_iter)
 
-def train_som(data, weights, num_iterations, radius, learning_rate):
-    for t in range(num_iterations):
-        start_time = time.time()  # Start timing
+def train_som(data, weights, max_duration, radius, learning_rate):
+    start_time = time.time()  # Start timing
+    t = 0
+    while time.time() - start_time < max_duration:
+        iter_start_time = time.time()  # Start timing the iteration
         for vector in data:
             # Find the Best Matching Unit (BMU)
             dists = euclidean_distance(weights, vector)
@@ -44,12 +46,13 @@ def train_som(data, weights, num_iterations, radius, learning_rate):
                         weights[i, j] += neighborhood * learning_rate * current_error
         
         # Decay radius and learning rate
-        radius = decay_function(radius, t, num_iterations)
-        learning_rate = decay_function(learning_rate, t, num_iterations)
-        end_time = time.time()  # End timing
-        print(f"Iteration {t+1}/{num_iterations} took {end_time - start_time:.2f} seconds")
+        radius = decay_function(radius, t, max_duration)
+        learning_rate = decay_function(learning_rate, t, max_duration)
+        t += 1
+        iter_end_time = time.time()  # End timing the iteration
+        print(f"Iteration {t} took {iter_end_time - iter_start_time:.2f} seconds")
 
-train_som(data, weights, num_iterations, radius, learning_rate)
+train_som(data, weights, max_duration, radius, learning_rate)
 
 def plot_som_with_labels(weights, data, labels):
     plt.figure(figsize=(10, 10))
@@ -61,7 +64,7 @@ def plot_som_with_labels(weights, data, labels):
     
     for i in range(num_neurons):
         for j in range(num_neurons):
-            if np.sum(label_map[i, j, :]) > 0:
+            if (np.sum(label_map[i, j, :]) > 0):
                 label = np.argmax(label_map[i, j, :])
                 percentage = label_map[i, j, label] / np.sum(label_map[i, j, :]) * 100
                 plt.text(i + .5, j + .5, f'{label}\n{percentage:.1f}%', 
@@ -73,7 +76,6 @@ def plot_som_with_labels(weights, data, labels):
     plt.title("SOM Visualization with Dominant Digit and Percentage")
     plt.gca().invert_yaxis()
     plt.show()
-
 
 def plot_som_neurons(weights):
     plt.figure(figsize=(10, 10))
