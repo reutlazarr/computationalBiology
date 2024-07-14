@@ -15,9 +15,12 @@ input_len = 784  # Length of input vector (28x28 images)
 radius = 1.0  # Neighborhood radius
 learning_rate = 0.5  # Learning rate
 max_duration = 180  # Maximum duration in seconds
+start_time = time.time()
+# Calculate the overall mean of all training examples
+mean_vector = np.mean(data, axis=0)
 
-# Initialize the weights
-weights = np.random.rand(num_neurons, num_neurons, input_len) * 255
+# Initialize the weights close to the mean vector with small random noise
+weights = np.tile(mean_vector, (num_neurons, num_neurons, 1)) + np.random.normal(0, 0.1, (num_neurons, num_neurons, input_len))
 
 def euclidean_distance(x, y):
     return np.linalg.norm(x - y, axis=-1)
