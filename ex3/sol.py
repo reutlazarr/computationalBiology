@@ -12,7 +12,7 @@ digits_keys = pd.read_csv(keys_path, header=None).values.flatten()
 # Parameters
 num_neurons = 10  # Number of neurons in each dimension (10x10 grid)
 input_len = 784  # Length of input vector (28x28 images)
-radius = 1.0  # Neighborhood radius
+radius = 2  # Neighborhood radius
 learning_rate = 0.15  # Learning rate
 
 # Calculate the overall mean of all training examples
@@ -62,6 +62,34 @@ def train_som(data, weights, num_iterations, radius, learning_rate, max_time):
             break
 
 train_som(data, weights, num_iterations, radius, learning_rate, max_time)
+
+def quantization_error(data, weights):
+    total_error = 0
+    for vector in data:
+        dists = euclidean_distance(weights, vector)
+        min_dist = np.min(dists)
+        total_error += min_dist
+    return total_error / len(data)
+
+def is_adjacent(pos1, pos2):
+    return np.sum(np.abs(np.array(pos1) - np.array(pos2))) == 1
+
+def topological_error(data, weights):
+    bad_mappings = 0
+    for vector in data:
+        dists = euclidean_distance(weights, vector)
+        bmu_idx = np.unravel_index(np.argmin(dists, axis=None), dists.shape)
+        dists[bmu_idx] = np.inf  # Exclude the BMU itself
+        second_bmu_idx = np.unravel_index(np.argmin(dists, axis=None), dists.shape)
+        if not is_adjacent(bmu_idx, second_bmu_idx):
+            bad_mappings += 1
+    return bad_mappings / len(data)
+
+quant_error = quantization_error(data, weights)
+topo_error = topological_error(data, weights)
+
+print(f"Quantization Error: {quant_error}")
+print(f"Topological Error: {topo_error}")
 
 
 def plot_som_neurons(weights):
