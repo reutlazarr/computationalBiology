@@ -13,9 +13,12 @@ digits_keys = pd.read_csv(keys_path, header=None).values.flatten()
 num_neurons = 10  # Number of neurons in each dimension (10x10 grid)
 input_len = 784  # Length of input vector (28x28 images)
 radius = 1.0  # Neighborhood radius
-learning_rate = 0.5  # Learning rate
-max_duration = 180  # Maximum duration in seconds
-start_time = time.time()
+learning_rate = 0.15  # Learning rate
+
+# Calculate the overall mean of all training examples
+num_iterations = 10  # Number of iterations
+max_time = 3 * 60  # Maximum time in seconds (3 minutes)
+
 # Calculate the overall mean of all training examples
 mean_vector = np.mean(data, axis=0)
 
@@ -28,11 +31,10 @@ def euclidean_distance(x, y):
 def decay_function(initial, t, max_iter):
     return initial * np.exp(-t / max_iter)
 
-def train_som(data, weights, max_duration, radius, learning_rate):
+def train_som(data, weights, num_iterations, radius, learning_rate, max_time):
     start_time = time.time()  # Start timing
-    t = 0
-    while time.time() - start_time < max_duration:
-        iter_start_time = time.time()  # Start timing the iteration
+    for t in range(num_iterations):
+        iteration_start_time = time.time()  # Timing for each iteration
         for vector in data:
             # Find the Best Matching Unit (BMU)
             dists = euclidean_distance(weights, vector)
@@ -49,13 +51,17 @@ def train_som(data, weights, max_duration, radius, learning_rate):
                         weights[i, j] += neighborhood * learning_rate * current_error
         
         # Decay radius and learning rate
-        radius = decay_function(radius, t, max_duration)
-        learning_rate = decay_function(learning_rate, t, max_duration)
-        t += 1
-        iter_end_time = time.time()  # End timing the iteration
-        print(f"Iteration {t} took {iter_end_time - iter_start_time:.2f} seconds")
+        radius = decay_function(radius, t, num_iterations)
+        learning_rate = decay_function(learning_rate, t, num_iterations)
+        iteration_end_time = time.time()  # End timing for each iteration
+        elapsed_time = iteration_end_time - start_time  # Total elapsed time
+        print(f"Iteration {t+1}/{num_iterations} took {iteration_end_time - iteration_start_time:.2f} seconds")
+        
+        if elapsed_time >= max_time:
+            print("Stopping training due to time limit")
+            break
 
-train_som(data, weights, max_duration, radius, learning_rate)
+train_som(data, weights, num_iterations, radius, learning_rate, max_time)
 
 def plot_som_with_labels(weights, data, labels):
     plt.figure(figsize=(10, 10))
@@ -67,7 +73,7 @@ def plot_som_with_labels(weights, data, labels):
     
     for i in range(num_neurons):
         for j in range(num_neurons):
-            if (np.sum(label_map[i, j, :]) > 0):
+            if np.sum(label_map[i, j, :]) > 0:
                 label = np.argmax(label_map[i, j, :])
                 percentage = label_map[i, j, label] / np.sum(label_map[i, j, :]) * 100
                 plt.text(i + .5, j + .5, f'{label}\n{percentage:.1f}%', 
@@ -79,6 +85,7 @@ def plot_som_with_labels(weights, data, labels):
     plt.title("SOM Visualization with Dominant Digit and Percentage")
     plt.gca().invert_yaxis()
     plt.show()
+
 
 def plot_som_neurons(weights):
     plt.figure(figsize=(10, 10))
