@@ -63,29 +63,6 @@ def train_som(data, weights, num_iterations, radius, learning_rate, max_time):
 
 train_som(data, weights, num_iterations, radius, learning_rate, max_time)
 
-def plot_som_with_labels(weights, data, labels):
-    plt.figure(figsize=(10, 10))
-    label_map = np.zeros((num_neurons, num_neurons, 10))  # To count the labels in each neuron
-    for x, label in zip(data, labels):
-        dists = euclidean_distance(weights, x)
-        bmu_idx = np.unravel_index(np.argmin(dists, axis=None), dists.shape)
-        label_map[bmu_idx[0], bmu_idx[1], int(label)] += 1
-    
-    for i in range(num_neurons):
-        for j in range(num_neurons):
-            if np.sum(label_map[i, j, :]) > 0:
-                label = np.argmax(label_map[i, j, :])
-                percentage = label_map[i, j, label] / np.sum(label_map[i, j, :]) * 100
-                plt.text(i + .5, j + .5, f'{label}\n{percentage:.1f}%', 
-                         color='black', fontdict={'weight': 'bold', 'size': 12},
-                         ha='center', va='center')
-    plt.xlim([0, num_neurons])
-    plt.ylim([0, num_neurons])
-    plt.grid()
-    plt.title("SOM Visualization with Dominant Digit and Percentage")
-    plt.gca().invert_yaxis()
-    plt.show()
-
 
 def plot_som_neurons(weights):
     plt.figure(figsize=(10, 10))
@@ -96,9 +73,6 @@ def plot_som_neurons(weights):
             plt.axis('off')
     plt.suptitle("SOM Neuron Weights Visualization")
     plt.show()
-
-# Plot the result
-plot_som_with_labels(weights, data, digits_keys)
 
 # Plot the neuron weights as images
 plot_som_neurons(weights)
