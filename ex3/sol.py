@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import time  # Import the time module
 
 # Load the data
 data_path = './digits_test.csv'
@@ -11,21 +12,22 @@ digits_keys = pd.read_csv(keys_path, header=None).values.flatten()
 # Parameters
 num_neurons = 10  # Number of neurons in each dimension (10x10 grid)
 input_len = 784  # Length of input vector (28x28 images)
-raduis = 1.0  # neighborhood radius
+radius = 1.0  # Neighborhood radius
 learning_rate = 0.5  # Learning rate
-num_iterations = 10000  # Number of iterations
+num_iterations = 20  # Number of iterations
 
 # Initialize the weights
 weights = np.random.rand(num_neurons, num_neurons, input_len) * 255
 
 def euclidean_distance(x, y):
-    return np.sqrt(np.sum((x - y) ** 2, axis=-1))
+    return np.linalg.norm(x - y, axis=-1)
 
 def decay_function(initial, t, max_iter):
     return initial * np.exp(-t / max_iter)
 
-def train_som(data, weights, num_iterations, raduis, learning_rate):
+def train_som(data, weights, num_iterations, radius, learning_rate):
     for t in range(num_iterations):
+        start_time = time.time()  # Start timing
         for vector in data:
             # Find the Best Matching Unit (BMU)
             dists = euclidean_distance(weights, vector)
@@ -36,17 +38,18 @@ def train_som(data, weights, num_iterations, raduis, learning_rate):
                 for j in range(num_neurons):
                     neuron_pos = np.array([i, j])
                     dist_to_bmu = euclidean_distance(neuron_pos, bmu_idx)
-                    if dist_to_bmu <= raduis:
-                        neighborhood = np.exp(-dist_to_bmu ** 2 / (2 * raduis ** 2))
+                    if dist_to_bmu <= radius:
+                        neighborhood = np.exp(-dist_to_bmu ** 2 / (2 * radius ** 2))
                         current_error = vector - weights[i, j]
                         weights[i, j] += neighborhood * learning_rate * current_error
         
-        # Decay raduis and learning rate
-        raduis = decay_function(raduis, t, num_iterations)
+        # Decay radius and learning rate
+        radius = decay_function(radius, t, num_iterations)
         learning_rate = decay_function(learning_rate, t, num_iterations)
+        end_time = time.time()  # End timing
+        print(f"Iteration {t+1}/{num_iterations} took {end_time - start_time:.2f} seconds")
 
-train_som(data, weights, num_iterations, raduis, learning_rate)
-
+train_som(data, weights, num_iterations, radius, learning_rate)
 
 def plot_som_with_labels(weights, data, labels):
     plt.figure(figsize=(10, 10))
@@ -71,5 +74,19 @@ def plot_som_with_labels(weights, data, labels):
     plt.gca().invert_yaxis()
     plt.show()
 
+
+def plot_som_neurons(weights):
+    plt.figure(figsize=(10, 10))
+    for i in range(num_neurons):
+        for j in range(num_neurons):
+            plt.subplot(num_neurons, num_neurons, i * num_neurons + j + 1)
+            plt.imshow(weights[i, j].reshape(28, 28), cmap='gray')
+            plt.axis('off')
+    plt.suptitle("SOM Neuron Weights Visualization")
+    plt.show()
+
 # Plot the result
 plot_som_with_labels(weights, data, digits_keys)
+
+# Plot the neuron weights as images
+plot_som_neurons(weights)
