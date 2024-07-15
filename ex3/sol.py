@@ -7,12 +7,13 @@ import time  # Import the time module
 data_path = './digits_test.csv'
 keys_path = './digits_keys.csv'
 data = pd.read_csv(data_path, header=None).values
+data = data / 256
 digits_keys = pd.read_csv(keys_path, header=None).values.flatten()
 
 # Parameters
 num_neurons = 10  # Number of neurons in each dimension (10x10 grid)
 input_len = 784  # Length of input vector (28x28 images)
-radius = 2  # Neighborhood radius
+radius = 2.5  # Neighborhood radius
 learning_rate = 0.15  # Learning rate
 
 # Calculate the overall mean of all training examples
@@ -29,7 +30,7 @@ def euclidean_distance(x, y):
     return np.linalg.norm(x - y, axis=-1)
 
 def decay_function(initial, t, max_iter):
-    return initial * np.exp(-t / max_iter)
+    return initial * (1-t/max_iter)
 
 def train_som(data, weights, num_iterations, radius, learning_rate, max_time):
     start_time = time.time()  # Start timing
