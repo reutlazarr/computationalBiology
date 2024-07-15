@@ -14,7 +14,7 @@ digits_keys = pd.read_csv(keys_path, header=None).values.flatten()
 num_neurons = 10  # Number of neurons in each dimension (10x10 grid)
 input_len = 784  # Length of input vector (28x28 images)
 radius = 2.5  # Neighborhood radius
-learning_rate = 0.15  # Learning rate
+learning_rate = 0.05  # Learning rate
 
 # Calculate the overall mean of all training examples
 num_iterations = 10  # Number of iterations
