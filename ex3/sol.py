@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import time
 
 # Load the data
@@ -67,56 +68,51 @@ def train_som(data, weights, num_iterations, radius, learning_rate, max_time):
 
 train_som(data, weights, num_iterations, radius, learning_rate, max_time)
 
-# Function to find clusters
-def find_clusters(weights, radius):
-    clusters = np.zeros((num_neurons, num_neurons), dtype=int)
-    cluster_id = 0
-    visited = np.zeros((num_neurons, num_neurons), dtype=bool)
-
-    def dfs(i, j):
-        stack = [(i, j)]
-        clusters[i, j] = cluster_id
-        while stack:
-            x, y = stack.pop()
-            for dx in range(-1, 2):
-                for dy in range(-1, 2):
-                    nx, ny = x + dx, y + dy
-                    if 0 <= nx < num_neurons and 0 <= ny < num_neurons and not visited[nx, ny]:
-                        if euclidean_distance(weights[x, y], weights[nx, ny]) < radius:
-                            clusters[nx, ny] = cluster_id
-                            visited[nx, ny] = True
-                            stack.append((nx, ny))
-
+def classify_neurons(weights, data, digits_keys):
+    classifications = np.zeros((num_neurons, num_neurons), dtype=int)
     for i in range(num_neurons):
         for j in range(num_neurons):
-            if not visited[i, j]:
-                visited[i, j] = True
-                dfs(i, j)
-                cluster_id += 1
+            dists = np.linalg.norm(data - weights[i, j], axis=1)
+            closest_idx = np.argmin(dists)
+            classifications[i, j] = digits_keys[closest_idx]
+    return classifications
 
-    return clusters
+def quantization_error(data, weights):
+    total_error = 0
+    for vector in data:
+        dists = euclidean_distance(weights, vector)
+        min_dist = np.min(dists)
+        total_error += min_dist
+    return total_error / len(data)
 
-# Find clusters in the SOM
-clusters = find_clusters(weights, radius=0.5)
+def is_adjacent(pos1, pos2):
+    return np.sum(np.abs(np.array(pos1) - np.array(pos2))) == 1
 
-# Plot the neuron weights with cluster borders
-def plot_som_neurons_with_clusters(weights, clusters):
-    plt.figure(figsize=(10, 10))
-    unique_clusters = np.unique(clusters)
-    colors = plt.cm.get_cmap('hsv', len(unique_clusters))
+def topological_error(data, weights):
+    bad_mappings = 0
+    for vector in data:
+        dists = euclidean_distance(weights, vector)
+        bmu_idx = np.unravel_index(np.argmin(dists, axis=None), dists.shape)
+        dists[bmu_idx] = np.inf  # Exclude the BMU itself
+        second_bmu_idx = np.unravel_index(np.argmin(dists, axis=None), dists.shape)
+        if not is_adjacent(bmu_idx, second_bmu_idx):
+            bad_mappings += 1
+    return bad_mappings / len(data)
 
+def plot_som_neurons(weights, classifications, quant_error, topo_error):
+    fig, axes = plt.subplots(num_neurons, num_neurons, figsize=(10, 10))
     for i in range(num_neurons):
         for j in range(num_neurons):
-            plt.subplot(num_neurons, num_neurons, i * num_neurons + j + 1)
-            plt.imshow(weights[i, j].reshape(28, 28), cmap='gray')
-            plt.axis('off')
-            for cluster_id in unique_clusters:
-                if clusters[i, j] == cluster_id:
-                    plt.gca().add_patch(plt.Rectangle((0, 0), 27, 27, linewidth=2, edgecolor=colors(cluster_id), facecolor='none'))
-                    break
-
-    plt.suptitle("SOM Neuron Weights Visualization with Clusters")
+            ax = axes[i, j]
+            ax.imshow(weights[i, j].reshape(28, 28), cmap='gray')
+            ax.axis('off')
+            color = plt.cm.tab10(classifications[i, j] / 10)
+            rect = patches.Rectangle((0, 0), 27, 27, linewidth=2, edgecolor=color, facecolor='none')
+            ax.add_patch(rect)
+    plt.suptitle(f"SOM Neuron Weights Visualization\nQuantization Error: {quant_error:.4f}, Topological Error: {topo_error:.4f}")
     plt.show()
 
-# Plot the neuron weights with cluster borders
-plot_som_neurons_with_clusters(weights, clusters)
+classifications = classify_neurons(weights, data, digits_keys)
+quant_error = quantization_error(data, weights)
+topo_error = topological_error(data, weights)
+plot_som_neurons(weights, classifications, quant_error, topo_error)
